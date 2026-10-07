@@ -1,0 +1,120 @@
+import pygame
+import random
+import sys
+
+# تهيئة بايجيم
+pygame.init()
+
+# إعدادات الشاشة
+SCREEN_WIDTH = 400
+SCREEN_HEIGHT = 600
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+pygame.display.set_caption("لعبة السيارات - Car Game")
+
+# الألوان
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+BLUE = (0, 0, 255)
+GRAY = (50, 50, 50)
+
+# إطار اللعبة (FPS)
+clock = pygame.time.Clock()
+FPS = 60
+
+# إعدادات خط الكتابة
+font = pygame.font.SysFont(None, 36)
+
+def game_loop():
+    # إحداثيات وحجم سيارة اللاعب
+    player_width = 40
+    player_height = 70
+    player_x = SCREEN_WIDTH // 2 - player_width // 2
+    player_y = SCREEN_HEIGHT - 100
+    player_speed = 5
+
+    # إعدادات السيارات المعترضة (العوائق)
+    enemy_width = 40
+    enemy_height = 70
+    enemy_x = random.randint(50, SCREEN_WIDTH - 50 - enemy_width)
+    enemy_y = -100
+    enemy_speed = 6
+
+    score = 0
+
+    while True:
+        # التعامل مع الأحداث (مثل إغلاق النافذة أو الضغط على الأزرار)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+
+        # قراءة الأزرار المضغوطة للحركة يميناً ويساراً
+        keys = pygame.key.get_pressed()
+        if keys[pygame.K_LEFT] and player_x > 40:
+            player_x -= player_speed
+        if keys[pygame.K_RIGHT] and player_x < SCREEN_WIDTH - 40 - player_width:
+            player_x += player_speed
+
+        # تحريك السيارة المعترضة للأسفل
+        enemy_y += enemy_speed
+
+        # إعادة توليد السيارة المعترضة إذا تجاوزت الشاشة من الأسفل وزيادة النقاط
+        if enemy_y > SCREEN_HEIGHT:
+            enemy_y = -100
+            enemy_x = random.randint(40, SCREEN_WIDTH - 40 - enemy_width)
+            score += 1
+            # زيادة السرعة تدريجياً كلما زادت النقاط
+            enemy_speed += 0.2
+
+        # كشف الاصطدام بين سيارة اللاعب وسيارة العدو
+        player_rect = pygame.Rect(player_x, player_y, player_width, player_height)
+        enemy_rect = pygame.Rect(enemy_x, enemy_y, enemy_width, enemy_height)
+
+        if player_rect.colliderect(enemy_rect):
+            # عند الاصطدام، تنتهي اللعبة
+            return score
+
+        # --- الرسم على الشاشة ---
+        # لون الخلفية (الشارع)
+        screen.fill(GRAY)
+
+        # رسم خطوط جانبية للطريق للتزيين
+        pygame.draw.rect(screen, WHITE, (20, 0, 10, SCREEN_HEIGHT))
+        pygame.draw.rect(screen, WHITE, (SCREEN_WIDTH - 30, 0, 10, SCREEN_HEIGHT))
+
+        # رسم سيارة اللاعب (باللون الأزرق)
+        pygame.draw.rect(screen, BLUE, player_rect)
+
+        # رسم السيارة المعترضة (باللون الأحمر)
+        pygame.draw.rect(screen, RED, enemy_rect)
+
+        # عرض النقاط الحالية
+        score_text = font.render(f"Score: {score}", True, WHITE)
+        screen.blit(score_text, (30, 30))
+
+        # تحديث الشاشة
+        pygame.display.flip()
+        clock.tick(FPS)
+
+# شاشة البداية / النهاية البسيطة
+def main():
+    while True:
+        screen.fill(BLACK)
+        
+        title_text = font.render("Press SPACE to Start", True, WHITE)
+        screen.blit(title_text, (SCREEN_WIDTH // 2 - 110, SCREEN_HEIGHT // 2 - 20))
+        
+        pygame.display.flip()
+
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                pygame.quit()
+                sys.exit()
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_SPACE:
+                    final_score = game_loop()
+                    # يمكنك هنا إظهار النتيجة النهائية إذا رغبت
+
+if __name__ == "__main__":
+    main()
